@@ -1,0 +1,40 @@
+# Start locator
+start locator --name=locator
+
+# Set screen width
+set variable --name=APP_RESULT_VIEWER --value=any
+
+# Configure PDX
+configure pdx --read-serialized=true
+
+# Start Servers
+start server --name=server-1 --server-port=0 --statistic-archive-file=cacheserver.gfs --J=-Dgemfire.log-file=cacheserver.log --J=-Dgemfire.conserve-sockets=false
+start server --name=server-2 --server-port=0 --statistic-archive-file=cacheserver.gfs --J=-Dgemfire.log-file=cacheserver.log --J=-Dgemfire.conserve-sockets=false
+start server --name=server-3 --server-port=0 --statistic-archive-file=cacheserver.gfs --J=-Dgemfire.log-file=cacheserver.log --J=-Dgemfire.conserve-sockets=false
+
+# List Members
+list members
+
+# Deploy Functions and AsyncEventListener
+deploy --jar=server/build/libs/server-0.0.1-SNAPSHOT.jar
+
+# List Functions
+list functions
+
+# Create AsyncEventQueue
+create async-event-queue --id=routing_aeq --batch-size=100 --batch-time-interval=100 --dispatcher-threads=1 --parallel=true --listener=example.server.aeq.RoutingAsyncEventListener
+
+# List AsyncEventQueues
+list async-event-queues
+
+# Sleep to enable Async Event Queues to be known by the locator through JMX
+sleep --time=5
+
+# Create Regions
+create region --name=Router --type=PARTITION_REDUNDANT --async-event-queue-id=routing_aeq
+
+# Execute a Function to assign the buckets to the Region
+execute function --id=AssignBucketsFunction --member=server-1 --arguments=Router
+
+# List Regions
+list regions

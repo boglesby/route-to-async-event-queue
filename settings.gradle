@@ -1,0 +1,2 @@
+rootProject.name = 'route-to-async-event-queue'
+include 'client','server'
